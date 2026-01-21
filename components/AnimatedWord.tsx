@@ -12,7 +12,7 @@ const AnimatedWord: React.FC<Props> = ({ word }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-    }, (word.duration + word.delay + 0.5) * 1000);
+    }, (word.duration + word.delay + 0.1) * 1000);
     return () => clearTimeout(timer);
   }, [word.duration, word.delay]);
 
@@ -21,12 +21,14 @@ const AnimatedWord: React.FC<Props> = ({ word }) => {
   let animationClass = '';
   const isJacob = word.fontSize.includes('40vw');
 
-  // Dynamic Text Shadow Calculation
+  const intensity = Math.min(Math.max(word.shadowIntensity, 5), 40);
+  const responsiveIntensity = intensity * 0.1; 
+
   const shadowValue = word.shadowEnabled 
     ? `
-      0 0 ${word.shadowIntensity}px ${word.color},
-      0 0 ${word.shadowIntensity * 2}px ${word.color}66,
-      6px 6px 0px rgba(0,0,0,0.9)
+      0 0 ${responsiveIntensity}vw ${word.color},
+      0 0 ${responsiveIntensity * 1.5}vw ${word.color}88,
+      0.5vw 0.5vw 0.1vw rgba(0,0,0,0.8)
     `
     : 'none';
 
@@ -47,9 +49,9 @@ const AnimatedWord: React.FC<Props> = ({ word }) => {
     maxWidth: '100vw', 
     textAlign: 'center',
     textShadow: shadowValue,
+    willChange: 'transform, opacity', 
   };
 
-  // Behavior Logic
   switch (word.behavior) {
     case 'top-to-bottom':
       animationClass = 'animate-fall';
@@ -79,7 +81,7 @@ const AnimatedWord: React.FC<Props> = ({ word }) => {
         ...style,
         animationDuration: `${word.duration}s`,
         animationDelay: `${word.delay}s`,
-        animationFillMode: 'forwards',
+        animationFillMode: 'forwards', 
       }}
     >
       {word.text}
@@ -90,17 +92,19 @@ const AnimatedWord: React.FC<Props> = ({ word }) => {
 const Styles: React.FC = () => (
   <style dangerouslySetInnerHTML={{ __html: `
     @keyframes fall {
-      0% { transform: translateY(-120%) translateX(-50%) rotate(-1deg); }
-      100% { transform: translateY(110vh) translateX(-50%) rotate(1deg); }
+      0% { transform: translateY(-30vh) translateX(-50%) rotate(-1deg); opacity: 0; }
+      10% { opacity: 1; }
+      100% { transform: translateY(150vh) translateX(-50%) rotate(1deg); opacity: 1; }
     }
     @keyframes rise {
-      0% { transform: translateY(110vh) translateX(-50%) rotate(1deg); }
-      100% { transform: translateY(-120%) translateX(-50%) rotate(-1deg); }
+      0% { transform: translateY(130vh) translateX(-50%) rotate(1deg); opacity: 0; }
+      10% { opacity: 1; }
+      100% { transform: translateY(-50vh) translateX(-50%) rotate(-1deg); opacity: 1; }
     }
     @keyframes fall-random {
-      0% { transform: translateY(-120%) translateX(-50%) rotate(-2deg); }
-      50% { transform: translateY(50vh) translateX(-48%) rotate(0deg); }
-      100% { transform: translateY(110vh) translateX(-50%) rotate(2deg); }
+      0% { transform: translateY(-30vh) translateX(-50%) rotate(-2deg); opacity: 0; }
+      10% { opacity: 1; }
+      100% { transform: translateY(150vh) translateX(-50%) rotate(2deg); opacity: 1; }
     }
     @keyframes zoom-pop {
       0% { transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; }
@@ -110,7 +114,7 @@ const Styles: React.FC = () => (
 
     .animate-fall { animation-name: fall; animation-timing-function: linear; }
     .animate-rise { animation-name: rise; animation-timing-function: linear; }
-    .animate-fall-random { animation-name: fall-random; animation-timing-function: ease-in-out; }
+    .animate-fall-random { animation-name: fall-random; animation-timing-function: linear; }
     .animate-zoom-pop { animation-name: zoom-pop; animation-timing-function: ease-in; }
   `}} />
 );

@@ -19,6 +19,14 @@ export const AVAILABLE_FONTS = [
   { name: 'Playfair', value: "'Playfair Display', serif" },
   { name: 'JetBrains', value: "'JetBrains Mono', monospace" },
   { name: 'Dancing', value: "'Dancing Script', cursive" },
+  { name: 'Oswald', value: "'Oswald', sans-serif" },
+  { name: 'Montserrat', value: "'Montserrat', sans-serif" },
+  { name: 'Marker', value: "'Permanent Marker', cursive" },
+  { name: 'Righteous', value: "'Righteous', cursive" },
+  { name: 'Silkscreen', value: "'Silkscreen', cursive" },
+  { name: 'Staatliches', value: "'Staatliches', cursive" },
+  { name: 'Cinzel', value: "'Cinzel', serif" },
+  { name: 'Special Elite', value: "'Special Elite', cursive" },
 ];
 
 export const getRandomColor = () => {
