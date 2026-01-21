@@ -12,6 +12,7 @@ const App: React.FC = () => {
   const [shadowEnabled, setShadowEnabled] = useState(true);
   const [shadowIntensity, setShadowIntensity] = useState(15);
   const [isRandomSize, setIsRandomSize] = useState(false);
+  const [isControlsVisible, setIsControlsVisible] = useState(true);
   
   const [wordGap, setWordGap] = useState(300); 
   const [dropDuration, setDropDuration] = useState(8); 
@@ -19,6 +20,7 @@ const App: React.FC = () => {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const laneRef = useRef<number>(0);
+  const timeoutRef = useRef<number | null>(null);
 
   const selectedFont = AVAILABLE_FONTS[fontIndex];
 
@@ -116,6 +118,13 @@ const App: React.FC = () => {
       const parts = inputValue.split(/\s+/).filter(p => p.length > 0);
       
       if (parts.length > 0) {
+        if (timeoutRef.current) {
+          window.clearTimeout(timeoutRef.current);
+        }
+
+        // Hide controls immediately for focus
+        setIsControlsVisible(false);
+
         parts.forEach((word, index) => {
           spawnWord(
             word, 
@@ -130,6 +139,19 @@ const App: React.FC = () => {
             isRandomSize
           );
         });
+
+        // REAPPEAR LOGIC: Wait for the words to be "launched" (spawn sequence) 
+        // plus a small buffer so the user can type again quickly.
+        const spawnSequenceDuration = (parts.length * wordGap);
+        const totalWaitTime = spawnSequenceDuration + 1200; // 1.2s after last word spawns
+        
+        timeoutRef.current = window.setTimeout(() => {
+          setIsControlsVisible(true);
+          timeoutRef.current = null;
+          // Refocus the input after it reappears for continuous interaction
+          setTimeout(() => inputRef.current?.focus(), 100);
+        }, totalWaitTime);
+
         setInputValue('');
       }
     }
@@ -139,10 +161,12 @@ const App: React.FC = () => {
     <div className="relative w-full h-[100dvh] bg-black text-white font-mono overflow-hidden select-none">
       <TypographyBackground words={words} />
 
-      {/* Control Container: Moved to TOP for better mobile accessibility and visibility */}
-      <div className="absolute top-4 sm:top-10 left-1/2 -translate-x-1/2 w-full max-w-lg px-3 sm:px-4 z-50 flex flex-col items-center gap-2 sm:gap-6">
+      <div 
+        className={`absolute top-4 sm:top-10 left-1/2 -translate-x-1/2 w-full max-w-lg px-3 sm:px-4 z-50 flex flex-col items-center gap-2 sm:gap-6 transition-all duration-700 ease-in-out ${
+          isControlsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+        }`}
+      >
         
-        {/* Main Input Box */}
         <div className="w-full bg-white/5 backdrop-blur-2xl rounded-full border border-white/10 px-6 sm:px-8 py-3 sm:py-4 shadow-[0_0_50px_rgba(0,0,0,0.8)] group transition-all hover:bg-white/10">
           <input
             ref={inputRef}
@@ -159,7 +183,6 @@ const App: React.FC = () => {
         <div className="flex flex-col gap-1.5 sm:gap-4 w-full items-center">
           
           <div className="flex items-center gap-1.5 sm:gap-3 w-full max-w-md">
-            {/* Font Carousel UI */}
             <div className="flex-1 flex items-center bg-black/40 border border-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl overflow-hidden shadow-xl p-0.5 sm:p-1">
               <button 
                 onClick={() => cycleFont('left')}
@@ -196,7 +219,6 @@ const App: React.FC = () => {
               </button>
             </div>
 
-            {/* Scale Control */}
             <div className="relative group/size flex items-center">
               <div className="p-3 sm:p-4 bg-black/40 border border-white/10 hover:border-white/30 backdrop-blur-md rounded-xl sm:rounded-2xl shadow-xl transition-all cursor-pointer">
                 <svg width="20" height="20" className="sm:w-6 sm:h-6 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -222,7 +244,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Random Color Button */}
             <button 
               onClick={randomizeCurrentColors}
               className="p-3 sm:p-4 bg-black/40 border border-white/10 hover:border-white/30 backdrop-blur-md rounded-xl sm:rounded-2xl shadow-xl transition-all active:scale-90 group relative"
@@ -236,7 +257,6 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-center">
-            {/* Casing */}
             <button 
               onClick={() => setPreserveCase(!preserveCase)}
               className={`flex items-center gap-1.5 sm:gap-2 border border-white/10 backdrop-blur-sm px-2.5 sm:px-4 py-1 sm:py-2 rounded-full shadow-md transition-all group ${preserveCase ? 'bg-white text-black' : 'bg-black/40 text-white'}`}
@@ -247,7 +267,6 @@ const App: React.FC = () => {
               </span>
             </button>
 
-            {/* Glow Toggle */}
             <div className="relative group/shadow flex items-center">
               <button 
                 onClick={() => setShadowEnabled(!shadowEnabled)}
@@ -275,7 +294,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Random Size */}
             <button 
               onClick={() => setIsRandomSize(!isRandomSize)}
               className={`flex items-center gap-1.5 sm:gap-2 border border-white/10 backdrop-blur-sm px-2.5 sm:px-4 py-1 sm:py-2 rounded-full shadow-md transition-all group ${isRandomSize ? 'bg-white text-black' : 'bg-black/40 text-white'}`}
@@ -286,7 +304,6 @@ const App: React.FC = () => {
               </span>
             </button>
 
-            {/* Word Gap */}
             <div className="relative group/gap flex items-center">
               <div className="flex items-center gap-1.5 bg-black/40 border border-white/10 hover:border-white/20 backdrop-blur-sm px-2.5 sm:px-4 py-1 sm:py-2 rounded-full shadow-md transition-all group">
                 <div className="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-purple-400 shadow-[0_0_8px_#c084fc]" />
@@ -312,7 +329,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Speed Control */}
             <div className="relative group/duration flex items-center">
               <div className="flex items-center gap-1.5 bg-black/40 border border-white/10 hover:border-white/20 backdrop-blur-sm px-2.5 sm:px-4 py-1 sm:py-2 rounded-full shadow-md transition-all group">
                 <div className="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
